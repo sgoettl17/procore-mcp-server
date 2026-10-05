@@ -6,9 +6,12 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   verify:
-    name: Typecheck & manifest invariants
+    name: Build & manifest invariants
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,19 +19,15 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Type check
-        run: npx tsc --noEmit
-
-      # The source OAS (specs/) is gitignored, so CI verifies the committed
-      # catalog artifacts instead of regenerating them.
-      - name: Validate catalog
-        run: npm run validate
+      # Build from committed catalog artifacts; specs/ stays gitignored.
+      - name: Build TypeScript and validate catalog
+        run: npm run build
 
       - name: Verify tools manifest invariants
         run: npm test

@@ -6,7 +6,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/TylerIlunga/procore-mcp-server.git"
+    "url": "https://github.com/sgoettl17/procore-mcp-server.git"
   },
   "keywords": [
     "mcp",
@@ -21,10 +21,11 @@
   "scripts": {
     "generate": "tsx scripts/generate-catalog.ts && tsx scripts/generate-tools-manifest.ts",
     "validate": "tsx scripts/validate-catalog.ts",
-    "build": "npm run generate && npm run validate && tsc",
+    "build": "npm run validate && tsc",
     "test": "tsx scripts/verify-manifest.ts",
     "start": "node dist/src/index.js",
-    "auth": "tsx src/auth/setup.ts"
+    "auth": "tsx src/auth/setup.ts",
+    "build:spec": "npm run generate && npm run validate && tsc"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
@@ -34,5 +35,8 @@
     "typescript": "^5.9.3",
     "@types/node": "^22.0.0",
     "tsx": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=24.11.0"
   }
 }

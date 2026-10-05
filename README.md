@@ -22,7 +22,7 @@ A build-time parser converts Procore's OpenAPI spec into a compact catalog, then
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 24.11+ (`nvm use` selects the CI version)
 - A [Procore Developer Portal](https://developers.procore.com/) account
 - An OAuth app with **Authorization Code** grant type
 - Set your redirect URI to `http://localhost`
@@ -30,7 +30,7 @@ A build-time parser converts Procore's OpenAPI spec into a compact catalog, then
 ## Setup
 
 ```bash
-git clone https://github.com/TylerIlunga/procore-mcp-server.git
+git clone https://github.com/sgoettl17/procore-mcp-server.git
 cd procore-mcp-server
 npm install
 ```
@@ -60,13 +60,36 @@ Coverage is identical in both modes; only the size of the advertised tool list
 differs. If you switch to `all` and are migrating from before v2.0.0, see
 `data/tool-renames.json` for the old -> new tool name map.
 
-You'll need Procore's OpenAPI spec file placed at `specs/combined_OAS.json`. This file is not included in the repo due to its size (~54MB). You can obtain it from [Procore's API documentation](https://developers.procore.com/).
-
-Build the catalog and compile TypeScript:
+The committed `data/` catalog artifacts let a clean checkout compile and test
+without Procore credentials or the large OpenAPI file:
 
 ```bash
-npm run build
+npm ci
+npm run build && npm test
 ```
+
+To refresh the API catalog, obtain the combined OpenAPI JSON from the
+[Procore Developer Portal](https://developers.procore.com/) API documentation.
+Save it locally as `specs/combined_OAS.json` (create `specs/` first). The upstream
+spec is about 54 MB and remains gitignored. Use an authorized portal download;
+do not copy OAuth credentials or tokens into the spec, CI, or Git history.
+Record the acquisition date, source, and `sha256sum specs/combined_OAS.json` in
+the catalog-refresh PR so reviewers can identify the input.
+
+```bash
+npm run build:spec
+npm test
+```
+
+`build:spec` regenerates and validates the catalog before compiling. Review and
+commit the generated `data/` artifacts, never the source spec. A missing spec
+makes `build:spec` fail; ordinary `build` intentionally uses committed data.
+CI runs `npm ci` followed by `npm run build` and `npm test` on the `.nvmrc` Node
+version with no live API calls or OAuth secrets.
+
+Paperclip must keep `PROCORE_TOOL_MODE=meta` (or leave it unset). Do not set
+`PROCORE_TOOL_MODE=all` in Paperclip: the seven discovery tools cover the API
+through `procore_api_call` without advertising thousands of endpoint tools.
 
 Authenticate with Procore (opens browser for OAuth):
 
