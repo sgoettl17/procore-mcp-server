@@ -11,6 +11,16 @@ export async function handleApiCall(args: {
   page?: number;
   per_page?: number;
 }): Promise<string> {
+  if (
+    process.env.PROCORE_READONLY === "1" &&
+    args.method.toUpperCase() !== "GET"
+  ) {
+    return (
+      `Status: 403\n\nBlocked: this server is running with PROCORE_READONLY=1, which only permits GET. ` +
+      `Refused ${args.method.toUpperCase()} ${args.path}.`
+    );
+  }
+
   const options: ApiCallOptions = {
     method: args.method,
     path: args.path,
