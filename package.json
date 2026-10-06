@@ -22,10 +22,11 @@
     "generate": "tsx scripts/generate-catalog.ts && tsx scripts/generate-tools-manifest.ts",
     "validate": "tsx scripts/validate-catalog.ts",
     "build": "npm run validate && tsc",
+    "build:spec": "npm run generate && npm run validate && tsc",
     "test": "tsx scripts/verify-manifest.ts",
     "start": "node dist/src/index.js",
-    "auth": "tsx src/auth/setup.ts",
-    "build:spec": "npm run generate && npm run validate && tsc"
+    "start:http": "node dist/src/http.js",
+    "auth": "tsx src/auth/setup.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
@@ -38,5 +39,8 @@
   },
   "engines": {
     "node": ">=24.11.0"
+  },
+  "allowScripts": {
+    "esbuild@0.27.4": true
   }
 }
