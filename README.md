@@ -22,10 +22,33 @@ A build-time parser converts Procore's OpenAPI spec into a compact catalog, then
 
 ## Prerequisites
 
-- Node.js 24.11+ (`nvm use` selects the CI version)
+- Node.js 20+ (`nvm use` selects the CI version)
 - A [Procore Developer Portal](https://developers.procore.com/) account
-- An OAuth app with **Authorization Code** grant type
-- Set your redirect URI to `http://localhost`
+
+## OAuth setup
+
+One-time Procore login saves tokens to `~/.procore-mcp/tokens.json` (override with `PROCORE_TOKEN_PATH`).
+
+1. Sign in to the [Procore Developer Portal](https://developers.procore.com/) and create an app (or open an existing one).
+2. Enable the **Authorization Code** grant and set the redirect URI to **`http://localhost`** (Procore requires this exact non-HTTPS localhost URL for the desktop auth flow).
+3. Copy the app **Client ID** and **Client Secret**.
+4. In the repo root, copy `.env.example` to `.env` and set at least:
+
+   | Variable | Purpose |
+   |----------|---------|
+   | `PROCORE_CLIENT_ID` | OAuth client ID from the developer portal |
+   | `PROCORE_CLIENT_SECRET` | OAuth client secret |
+   | `PROCORE_COMPANY_ID` | Default Procore company ID (integer header for API calls) |
+
+   Optional: `PROCORE_ENV` (`production` or `sandbox`), `PROCORE_TOKEN_PATH`, `PROCORE_TOOL_MODE` (leave unset or `meta` for the 7 discovery tools; see below).
+
+5. Run the interactive OAuth flow (opens a browser; listens on port 80 for the callback):
+
+   ```bash
+   npm run auth
+   ```
+
+   On Linux/macOS, port 80 may require `sudo npm run auth`. Tokens are written after you approve access in the browser.
 
 ## Setup
 
@@ -35,17 +58,7 @@ cd procore-mcp-server
 npm install
 ```
 
-Copy the example env file and fill in your credentials:
-
-```bash
-cp .env.example .env
-```
-
-```env
-PROCORE_CLIENT_ID=your_client_id
-PROCORE_CLIENT_SECRET=your_client_secret
-PROCORE_COMPANY_ID=your_company_id
-```
+See [OAuth setup](#oauth-setup) for portal app creation and `npm run auth`.
 
 By default the server exposes the **7 discovery tools**, and every Procore
 endpoint is reached through `procore_api_call`. Registering a dedicated tool
@@ -84,20 +97,14 @@ npm test
 `build:spec` regenerates and validates the catalog before compiling. Review and
 commit the generated `data/` artifacts, never the source spec. A missing spec
 makes `build:spec` fail; ordinary `build` intentionally uses committed data.
-CI runs `npm ci` followed by `npm run build` and `npm test` on the `.nvmrc` Node
-version with no live API calls or OAuth secrets.
+CI runs on Node 20: `npm ci`, then `npm run build` and `npm test`, with no live
+API calls or OAuth secrets.
 
 Paperclip must keep `PROCORE_TOOL_MODE=meta` (or leave it unset). Do not set
 `PROCORE_TOOL_MODE=all` in Paperclip: the seven discovery tools cover the API
 through `procore_api_call` without advertising thousands of endpoint tools.
 
-Authenticate with Procore (opens browser for OAuth):
-
-```bash
-npm run auth
-```
-
-Start the server:
+Start the server (after OAuth setup):
 
 ```bash
 npm start
